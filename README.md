@@ -1,5 +1,6 @@
 # BMI_Calculator
  Calculate the BMI and classify it into categories (e.g., underweight, normal, overweight) based on predefined ranges. Display the BMI result and category to the user.
+
  ---------- Key Points ----------
 1. User Input Validation: Ensure valid user inputs within reasonable ranges and handle errors gracefully.
 2. Range of Weight is ( 20 - 300 ) in kg.
