@@ -1,41 +1,22 @@
-from typing import Tuple
-import sys
-import time
+GREEN = '\033[92m'
+YELLOW = '\033[93m'
+RED = '\033[91m'
+END = '\033[0m'
 
-# ANSI color codes (works in terminals: VS Code, Linux, macOS, Windows)
-class Colors:
-    HEADER    = '\033[95m'
-    OKBLUE    = '\033[94m'
-    OKCYAN    = '\033[96m'
-    OKGREEN   = '\033[92m'
-    WARNING   = '\033[93m'
-    FAIL      = '\033[91m'
-    ENDC      = '\033[0m'
-    BOLD      = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
-def calculate_bmi(weight_kg: float, height_m: float) -> float:
-    """Calculate BMI using the standard formula: weight(kg) / height(m)²"""
-    return weight_kg / (height_m ** 2)
-
-
-def get_bmi_category(bmi: float) -> Tuple[str, str]:
-    """
-     according to WHO classification
-    """
+def get_category_and_color(bmi):
+    """Returns the category name and a color code based on BMI value."""
     if bmi < 18.5:
-        return "Underweight", Colors.WARNING
-    elif 18.5 <= bmi < 25:
-        return "Normal weight", Colors.OKGREEN
-    elif 25 <= bmi < 30:
-        return "Overweight", Colors.WARNING
-    elif 30 <= bmi < 35:
-        return "Obesity class I", Colors.FAIL
-    elif 35 <= bmi < 40:
-        return "Obesity class II", Colors.FAIL
+        return "Underweight", YELLOW
+    elif bmi < 25:
+        return "Normal weight", GREEN
+    elif bmi < 30:
+        return "Overweight", YELLOW
+    elif bmi < 35:
+        return "Obesity class I", RED
+    elif bmi < 40:
+        return "Obesity class II", RED
     else:
-        return "Obesity class III", Colors.FAIL
+        return "Obesity class III", RED
 
 
 def get_health_message(category: str) -> str:
@@ -47,67 +28,63 @@ def get_health_message(category: str) -> str:
         "Obesity class II": "Medical evaluation and lifestyle changes are strongly recommended.",
         "Obesity class III": "Please seek professional medical advice as soon as possible."
     }
-    return messages.get(category, "No specific advice available.")
-
-
-def get_valid_float(prompt: str, min_val: float, max_val: float) -> float:
-    """Get float input with validation loop"""
-    while True:
-        try:
-            value = float(input(prompt))
-            if min_val <= value <= max_val:
-                return value
-            else:
-                print(f"{Colors.WARNING}Value must be between {min_val} and {max_val}.{Colors.ENDC}")
-        except ValueError:
-            print(f"{Colors.FAIL}Please enter a valid number.{Colors.ENDC}")
+    return messages.get(category, "No message available for this category.")
 
 
 def main():
-    print(f"\n{Colors.HEADER}{Colors.BOLD}═══ BMI Calculator (WHO Classification) ═══{Colors.ENDC}\n")
-
+    print("=== SIMPLE BMI CALCULATOR ===")
+    
+    # List to store our history
     history = []
 
-    while True:
-        print(f"{Colors.OKCYAN}→ Enter your measurements:{Colors.ENDC}")
+    running = True
+    while running:
+        print("\nPlease enter your details:")
+        
+        
+        try:
+            weight = float(input("Weight (kg): "))
+            height = float(input("Height (meters): "))
+            
+            if weight <= 0 or height <= 0:
+                print("Error: Weight and height must be positive numbers.")
+                continue
+        except ValueError:
+            print("Error: Please enter numbers only (e.g., 70.5).")
+            continue
 
-        weight = get_valid_float("Weight (kg)     → ", 20, 300)
-        height = get_valid_float("Height (meters) → ", 1.0, 2.5)
-
-        bmi = calculate_bmi(weight, height)
-        category, color = get_bmi_category(bmi)
+        
+        bmi = weight / (height * height)
+        
+        
+        category, color = get_category_and_color(bmi)
         message = get_health_message(category)
 
-        print(f"\n{Colors.BOLD}Results:{Colors.ENDC}")
-        print(f"  • BMI          : {color}{bmi:.2f}{Colors.ENDC}")
-        print(f"  • Classification: {color}{category}{Colors.ENDC}")
-        print(f"  • Health note  : {message}\n")
+       
+        print("\nRESULTS:")
+        print("BMI:      " + color + str(round(bmi, 2)) + END)
+        print("Category: " + color + category + END)
+        print("Advice:   " + message)
 
-        # Save to history
-        entry = f"{time.strftime('%H:%M:%S')} | {weight:5.1f} kg | {height:4.2f} m | {bmi:5.2f} | {category}"
-        history.append(entry)
+        # Add to history list 
+        history_entry = f"Weight: {weight}kg | BMI: {round(bmi, 2)} | {category}"
+        history.append(history_entry)
 
-        again = input(f"{Colors.OKBLUE}Calculate another? (y/n): {Colors.ENDC}").strip().lower()
-        if again not in ('y', 'yes', ''):
-            break
+       # if user wants to continue
+        choice = input("\nCalculate another? (y/n): ").lower()
+        if choice != 'y':
+            running = False
 
-    # Summary
-    if history:
-        print(f"\n{Colors.HEADER}{Colors.BOLD}═══ Session Summary ═══{Colors.ENDC}")
-        print(f"Total calculations: {len(history)}\n")
-        for line in history:
-            print(f"  {line}")
-        print()
-
-    print(f"{Colors.OKGREEN}Thank you for using the BMI Calculator!{Colors.ENDC}\n")
+   
+    print("\n=== SESSION SUMMARY ===")
+    if len(history) == 0:
+        print("No calculations performed.")
+    else:
+        for item in history:
+            print("- " + item)
+    
+    print("\nThank you for using the calculator!")
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print(f"\n\n{Colors.WARNING}Program terminated by user.{Colors.ENDC}")
-        sys.exit(0)
-    except Exception as e:
-        print(f"\n{Colors.FAIL}An unexpected error occurred: {e}{Colors.ENDC}")
-        sys.exit(1)
+    main()
